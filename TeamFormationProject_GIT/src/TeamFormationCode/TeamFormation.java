@@ -7,12 +7,12 @@ package TeamFormationCode;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import static java.util.Collections.list;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -31,6 +31,7 @@ public class TeamFormation {
     //NEW VARIABLES
     static final int teamSize = 3; //this variable needs to take its value from the database 
     static final int numberOfTeams = (int) Math.floor(Workers.length / teamSize);
+    static final String protocol = "optimal"; //can be "optimal" or "rand"
 
     //each row of preferences is a worker and each column is that worker's preferences for another worker
     //carefull to set the values of this table as doubles!!
@@ -80,7 +81,7 @@ public class TeamFormation {
          }
          */
         // Finally, we generate the disjoint set of teams, which are our final teams
-        List<Team> finalTeams = cutGraph(teams);
+        List<Team> finalTeams = cutGraph(teams, protocol);
         ListIterator<Team> listIterator2 = finalTeams.listIterator();
         while (listIterator2.hasNext()) {
             Team curTeam2 = listIterator2.next();
@@ -90,17 +91,20 @@ public class TeamFormation {
 
     }
 
-    //the cutGraph method cuts the graph of workers into disjoint sets (the teams), preferring those teams that have more links one to the other
-    private static List<Team> cutGraph(List<Team> teams) {
+    //the cutGraph method cuts the graph of workers into disjoint sets (the teams). If protocol="optimal" it prefers those teams that have more links one to the other . If protocol= "random" then it randomly selects teams
+    private static List<Team> cutGraph(List<Team> teams, String protocol) {
         List<Team> tempList = teams;
         List<Team> result = new ArrayList<>();
 
         do {
-            //this is if we want to select teams randomly
-            //Random rand = new Random();
-            //int pickTeam = rand.nextInt((tempList.size() - 0) + 1) + 0;
-            //result.add(tempList.get(pickTeam));
-
+            //if the protocol is random then we shuffle the teampList randomly (by defaut it is sorted in descending team strenght order
+            if (protocol.equals("random")) {
+                long seed = System.nanoTime();
+                Collections.shuffle(tempList, new Random(seed));
+            }
+            else if (protocol.equals("optimal")){
+            //if protocol selected = "optimal" there is no action needed on the list, it is anyway sorted by defaul in descending team strength (= pairwise sum among team members) order
+            }
             Iterator<Team> iterator = tempList.iterator();
             while (iterator.hasNext()) {
                 Team candidateTeam = iterator.next();
@@ -115,33 +119,6 @@ public class TeamFormation {
         return result;
     }
 
-    //the CutGraphRand method cuts the graph randomly
-     private static List<Team> cutGraphRand(List<Team> teams) {
-        List<Team> tempList = teams;
-        List<Team> result = new ArrayList<>();
-
-        do {
-            //this is if we want to select teams randomly
-            //Random rand = new Random();
-            //int pickTeam = rand.nextInt((tempList.size() - 0) + 1) + 0;
-            //result.add(tempList.get(pickTeam));
-
-            Iterator<Team> iterator = tempList.iterator();
-            while (iterator.hasNext()) {
-                Team candidateTeam = iterator.next();
-                if (teamEnters(candidateTeam, result)) { // if none of the candidateTeam members is already in the result list then add this team
-                    result.add(candidateTeam);
-                } else {
-                    //else if even one of the candidate team members is already in one team of the result, then do nothing (i.e. do not add the team)
-                }
-                iterator.remove(); // Remove the current element (i.e. the team currently under inspection) from the iterator and the list.
-            }
-        } while (result.size() < numberOfTeams);
-        return result;
-    }
-
-
-    
     
     //the disjoint method checks if two teams have even one person in common, in which case it returns FALSE
     static boolean disjoint(Team firstTeam, Team secondTeam) {
