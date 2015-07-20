@@ -17,7 +17,7 @@ import java.util.Set;
 
 /**
  *
- * @author lykourentzou
+ * @author lykourentzou_2015
  */
 public class TeamFormation {
 
